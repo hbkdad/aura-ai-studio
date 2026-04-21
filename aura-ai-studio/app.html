@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aura AI Studio — Content Writer</title>
+<meta name="description" content="AI content creation app powered by Gemini, Groq, Claude, and more.">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --purple:#534AB7;--purple-dark:#3C3489;--purple-light:#EEEDFE;
+  --teal:#1D9E75;--teal-light:#E1F5EE;
+  --bg:#FFFFFF;--bg2:#F9F9F8;--bg3:#F1EFE8;
+  --text:#1a1a18;--text2:#5F5E5A;--text3:#888780;
+  --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.15);
+  --radius:10px;--shadow:0 2px 16px rgba(0,0,0,0.08);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
+.app{max-width:1100px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+
+/* TOPBAR */
+.topbar{background:var(--bg);border-radius:var(--radius);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);box-shadow:var(--shadow)}
+.logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--text);text-decoration:none}
+.logo-icon{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--purple),var(--teal));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px}
+.badge{font-size:10px;padding:2px 8px;border-radius:20px;background:#FFF3CD;color:#856404;font-weight:600}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.credits-pill{font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);color:var(--text2);background:var(--bg2)}
+.upgrade-link{font-size:12px;padding:6px 16px;border-radius:20px;background:var(--purple);color:white;text-decoration:none;font-weight:600;transition:.15s}
+.upgrade-link:hover{background:var(--purple-dark)}
+.home-link{font-size:12px;color:var(--text2);text-decoration:none;padding:5px 12px;border-radius:20px;border:1px solid var(--border)}
+.home-link:hover{border-color:var(--border2)}
+
+/* MAIN LAYOUT */
+.main{display:grid;grid-template-columns:200px 1fr;gap:14px;min-height:600px}
+
+/* SIDEBAR */
+.sidebar{background:var(--bg);border-radius:var(--radius);padding:14px 10px;border:1px solid var(--border);display:flex;flex-direction:column;gap:2px}
+.nav-section-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;padding:8px 10px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:13px;cursor:pointer;color:var(--text2);transition:.15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg2);color:var(--text)}
+.nav-item.active{background:var(--purple-light);color:var(--purple);font-weight:600}
+.nav-divider{height:1px;background:var(--border);margin:8px 0}
+
+/* RIGHT COLUMN */
+.right-col{display:flex;flex-direction:column;gap:14px}
+
+/* FORM CARD */
+.card{background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow)}
+.card-header{padding:16px 20px 0;border-bottom:1px solid var(--border);margin-bottom:16px}
+.card-title{font-size:15px;font-weight:700;margin-bottom:3px}
+.card-sub{font-size:12px;color:var(--text2);padding-bottom:14px}
+.card-body{padding:0 20px 20px}
+
+/* FORMAT TABS */
+.format-tabs{display:flex;gap:3px;background:var(--bg2);padding:4px;border-radius:9px;margin-bottom:16px;overflow-x:auto}
+.format-tab{flex-shrink:0;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;color:var(--text2);border:none;background:none}
+.format-tab:hover{color:var(--text)}
+.format-tab.active{background:var(--bg);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.1);border:1px solid var(--border)}
+
+/* FORM ELEMENTS */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+textarea,select,input[type=text]{width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;background:var(--bg);color:var(--text);font-family:inherit;transition:.15s}
+textarea:focus,select:focus,input:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(83,74,183,0.12)}
+textarea{resize:vertical;min-height:80px;line-height:1.6}
+.char-count{font-size:11px;color:var(--text3);text-align:right;margin-top:3px}
+
+/* TONE */
+.tone-grid{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tone-chip{padding:5px 13px;border-radius:20px;font-size:12px;border:1px solid var(--border);cursor:pointer;background:var(--bg);transition:.15s;color:var(--text2);font-weight:500}
+.tone-chip:hover{border-color:var(--purple);color:var(--purple)}
+.tone-chip.sel{border-color:var(--purple);background:var(--purple-light);color:var(--purple)}
+
+/* MODEL CHIPS */
+.model-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.model-chip{display:flex;align-items:center;gap:6px;padding:6px 13px;border-radius:20px;border:1px solid var(--border);font-size:12px;cursor:pointer;transition:.15s;background:var(--bg);color:var(--text2)}
+.model-chip:hover{border-color:var(--purple)}
+.model-chip.sel{border-color:var(--purple);background:var(--purple-light);color:var(--purple)}
+.model-chip.auto-sel{border-color:var(--teal);background:var(--teal-light);color:var(--teal)}
+.mdot{width:7px;height:7px;border-radius:50%}
+
+/* GENERATE BTN */
+.gen-btn{width:100%;padding:13px;border-radius:10px;background:var(--purple);color:white;border:none;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.15s;letter-spacing:.2px}
+.gen-btn:hover:not(:disabled){background:var(--purple-dark);transform:translateY(-1px);box-shadow:0 4px 16px rgba(83,74,183,0.3)}
+.gen-btn:active:not(:disabled){transform:translateY(0)}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* OUTPUT */
+.output-card{background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow)}
+.output-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.output-title{font-size:13px;font-weight:700}
+.output-actions{display:flex;gap:6px}
+.action-btn{font-size:11px;padding:5px 14px;border-radius:6px;border:1px solid var(--border);background:var(--bg);cursor:pointer;color:var(--text2);transition:.15s;font-weight:500}
+.action-btn:hover{border-color:var(--border2);color:var(--text)}
+.action-btn.primary-btn{background:var(--purple);color:white;border-color:var(--purple)}
+.action-btn.primary-btn:hover{background:var(--purple-dark)}
+.output-body{padding:18px;min-height:160px;font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap}
+.output-placeholder{color:var(--text3);font-style:italic;text-align:center;padding:40px 20px}
+.model-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:3px 10px;border-radius:12px;background:var(--teal-light);color:var(--teal);font-weight:600;margin-bottom:12px}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-card{background:var(--bg);border-radius:var(--radius);border:1px solid var(--border);padding:14px;text-align:center}
+.stat-num{font-size:22px;font-weight:700;color:var(--text)}
+.stat-label{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* HISTORY */
+.history-item{padding:12px 14px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:.15s}
+.history-item:hover{border-color:var(--border2);background:var(--bg)}
+.history-meta{font-size:10px;color:var(--text3);margin-bottom:4px;font-weight:500}
+.history-preview{font-size:12px;color:var(--text2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+
+/* SETTINGS */
+.settings-block{margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.settings-block:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.settings-block-title{font-size:13px;font-weight:700;margin-bottom:12px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;font-size:13px;color:var(--text2);border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle{width:38px;height:22px;border-radius:11px;cursor:pointer;position:relative;transition:.2s;border:none;flex-shrink:0}
+.toggle.on{background:var(--purple)}
+.toggle.off{background:#D3D1C7}
+.toggle::after{content:'';width:16px;height:16px;border-radius:50%;background:white;position:absolute;top:3px;transition:.2s}
+.toggle.on::after{left:19px}
+.toggle.off::after{left:3px}
+
+/* UPGRADE */
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.plan-card{padding:22px;border-radius:12px;border:1px solid var(--border);background:var(--bg)}
+.plan-card.featured{border:2px solid var(--purple);position:relative}
+.plan-featured-label{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--purple);color:white;font-size:10px;padding:3px 12px;border-radius:20px;font-weight:700;white-space:nowrap}
+.plan-tier{font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.plan-price{font-size:28px;font-weight:800;margin-bottom:3px;letter-spacing:-1px}
+.plan-price span{font-size:13px;font-weight:400;color:var(--text2)}
+.plan-desc{font-size:12px;color:var(--text2);margin-bottom:16px}
+.plan-features{font-size:12px;line-height:2;color:var(--text2);margin-bottom:18px}
+.plan-btn{display:block;text-align:center;padding:9px;border-radius:8px;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:.15s}
+.plan-btn.primary{background:var(--purple);color:white}
+.plan-btn.primary:hover{background:var(--purple-dark)}
+.plan-btn.outline{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.plan-btn.outline:hover{border-color:var(--border2)}
+
+/* LOADING */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.loading{animation:pulse 1.2s ease-in-out infinite}
+
+/* ERROR */
+.error-box{background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:10px 14px;font-size:12px;color:#B91C1C;margin-bottom:12px}
+
+/* BRAND VOICE INDICATOR */
+.brand-active{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 10px;border-radius:20px;background:var(--teal-light);color:var(--teal);font-weight:600;margin-bottom:12px}
+
+@media(max-width:700px){
+  .main{grid-template-columns:1fr}
+  .sidebar{flex-direction:row;overflow-x:auto;padding:8px}
+  .nav-section-label{display:none}
+  .plans-grid{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <a href="landing.html" class="logo">
+      <div class="logo-icon">A</div>
+      Aura AI Studio
+      <span class="badge">ALPHA</span>
+    </a>
+    <div class="topbar-right">
+      <span class="credits-pill" id="credits-display">✦ 50 credits today</span>
+      <a href="landing.html" class="home-link">← Home</a>
+      <a href="#" class="upgrade-link" onclick="showPanel('upgrade')">Upgrade Pro →</a>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" id="st-gen">0</div>
+      <div class="stat-label">Generated today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="st-words">0</div>
+      <div class="stat-label">Words written</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">$0.00</div>
+      <div class="stat-label">API cost (free!)</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="nav-section-label">Create</div>
+      <button class="nav-item active" id="nav-create" onclick="showPanel('create')">✦ Content Writer</button>
+      <button class="nav-item" id="nav-brand" onclick="showPanel('brand')">◈ Brand Voice</button>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Manage</div>
+      <button class="nav-item" id="nav-history" onclick="showPanel('history')">◷ History</button>
+      <button class="nav-item" id="nav-settings" onclick="showPanel('settings')">⚙ Settings</button>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Plan</div>
+      <button class="nav-item" id="nav-upgrade" onclick="showPanel('upgrade')">◆ Upgrade</button>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+
+      <!-- ===== CREATE PANEL ===== -->
+      <div id="panel-create">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Content Writer</div>
+            <div class="card-sub">Smart AI routing — the best free model is chosen automatically for each content type</div>
+          </div>
+          <div class="card-body">
+
+            <div class="format-tabs" id="format-tabs">
+              <button class="format-tab active" onclick="setFmt('Blog Post',this)">📝 Blog Post</button>
+              <button class="format-tab" onclick="setFmt('Social Media',this)">📲 Social</button>
+              <button class="format-tab" onclick="setFmt('Email',this)">📧 Email</button>
+              <button class="format-tab" onclick="setFmt('Ad Copy',this)">📣 Ad Copy</button>
+              <button class="format-tab" onclick="setFmt('YouTube Script',this)">🎬 Script</button>
+              <button class="format-tab" onclick="setFmt('SEO Article',this)">🔍 SEO</button>
+            </div>
+
+            <div class="form-group">
+              <label>Topic / Prompt</label>
+              <textarea id="topic" placeholder="Describe what you want to create. Be specific for better results!
+E.g. '5 reasons small businesses in Ontario need a professional website in 2026'" rows="4" oninput="updateCharCount()"></textarea>
+              <div class="char-count" id="char-count">0 / 500 characters</div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group" style="margin:0">
+                <label>Platform / Audience</label>
+                <select id="platform">
+                  <option>General audience</option>
+                  <option>LinkedIn professionals</option>
+                  <option>Instagram followers</option>
+                  <option>Twitter / X</option>
+                  <option>Facebook</option>
+                  <option>TikTok creators</option>
+                  <option>Email subscribers</option>
+                  <option>Local business customers</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label>Length</label>
+                <select id="length">
+                  <option>Short (100–200 words)</option>
+                  <option selected>Medium (300–500 words)</option>
+                  <option>Long (700–1000 words)</option>
+                  <option>Epic (1500+ words)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:6px">
+              <label>Tone</label>
+            </div>
+            <div class="tone-grid" style="margin-bottom:16px">
+              <div class="tone-chip sel" onclick="setTone('Professional',this)">Professional</div>
+              <div class="tone-chip" onclick="setTone('Conversational',this)">Conversational</div>
+              <div class="tone-chip" onclick="setTone('Witty',this)">Witty</div>
+              <div class="tone-chip" onclick="setTone('Authoritative',this)">Authoritative</div>
+              <div class="tone-chip" onclick="setTone('Empathetic',this)">Empathetic</div>
+              <div class="tone-chip" onclick="setTone('Inspirational',this)">Inspirational</div>
+              <div class="tone-chip" onclick="setTone('Casual',this)">Casual</div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:6px">
+              <label>AI Model</label>
+            </div>
+            <div class="model-row" style="margin-bottom:18px">
+              <div class="model-chip auto-sel sel" id="mc-auto" onclick="setModel('auto',this)">
+                <div class="mdot" style="background:var(--teal)"></div> Auto (Best for task)
+              </div>
+              <div class="model-chip" id="mc-gemini" onclick="setModel('gemini',this)">
+                <div class="mdot" style="background:#4285F4"></div> Gemini Flash
+              </div>
+              <div class="model-chip" id="mc-groq" onclick="setModel('groq',this)">
+                <div class="mdot" style="background:#F97316"></div> Groq / Llama
+              </div>
+              <div class="model-chip" id="mc-claude" onclick="setModel('claude',this)">
+                <div class="mdot" style="background:var(--purple)"></div> Claude
+              </div>
+            </div>
+
+            <div id="error-area"></div>
+
+            <button class="gen-btn" id="gen-btn" onclick="generate()">
+              <span id="btn-label">✦ Generate Content</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- OUTPUT -->
+        <div class="output-card">
+          <div class="output-header">
+            <span class="output-title">Generated Content</span>
+            <div class="output-actions">
+              <button class="action-btn" onclick="copyOut()">Copy</button>
+              <button class="action-btn" onclick="generate()">Regenerate</button>
+              <button class="action-btn primary-btn" onclick="saveOut()">Save ✓</button>
+            </div>
+          </div>
+          <div class="output-body" id="output">
+            <div class="output-placeholder">Your content will appear here.<br><br>Configure your settings above and click <strong>Generate Content</strong> to start.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== BRAND VOICE PANEL ===== -->
+      <div id="panel-brand" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Brand Voice</div>
+            <div class="card-sub">Define your identity once. Aura applies it to every generation automatically.</div>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>Your Brand / Business Name</label>
+              <input type="text" id="b-name" placeholder="e.g. Northland Digital Co.">
+            </div>
+            <div class="form-group">
+              <label>What do you do? (one clear sentence)</label>
+              <textarea id="b-desc" rows="2" placeholder="e.g. We build affordable, professional websites for small businesses across Northern Ontario."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Who is your target audience?</label>
+              <input type="text" id="b-audience" placeholder="e.g. Small business owners aged 35-60, non-technical, local community-focused">
+            </div>
+            <div class="form-group">
+              <label>3 words that describe your voice</label>
+              <input type="text" id="b-words" placeholder="e.g. Trustworthy, Local, Straightforward">
+            </div>
+            <div class="form-group">
+              <label>Things you NEVER say / always avoid</label>
+              <textarea id="b-avoid" rows="2" placeholder="e.g. No corporate jargon, never say 'leverage' or 'synergy', avoid being salesy"></textarea>
+            </div>
+            <button class="gen-btn" onclick="saveBrand()" style="margin-bottom:10px">Save Brand Voice</button>
+            <div id="brand-msg"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== HISTORY PANEL ===== -->
+      <div id="panel-history" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Content History</div>
+            <div class="card-sub">All content generated this session. Click any item to reload it.</div>
+          </div>
+          <div class="card-body">
+            <div id="history-list"><div class="output-placeholder" style="padding:20px 0">No content generated yet. Head to Content Writer and create something!</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SETTINGS PANEL ===== -->
+      <div id="panel-settings" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Settings</div>
+            <div class="card-sub">Add your free API keys to unlock more models. All keys stay in your browser only.</div>
+          </div>
+          <div class="card-body">
+            <div class="settings-block">
+              <div class="settings-block-title">🔑 Free API Keys</div>
+              <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6">Get free keys at the links below. Your keys are never sent anywhere except directly to the AI provider.</p>
+              <div class="form-group">
+                <label>Google Gemini API Key — <a href="https://ai.google.dev" target="_blank" style="color:var(--purple)">Get free at ai.google.dev</a></label>
+                <input type="text" id="key-gemini" placeholder="AIza...">
+              </div>
+              <div class="form-group">
+                <label>Groq API Key — <a href="https://console.groq.com" target="_blank" style="color:var(--purple)">Get free at console.groq.com</a></label>
+                <input type="text" id="key-groq" placeholder="gsk_...">
+              </div>
+              <div class="form-group">
+                <label>OpenRouter Key — <a href="https://openrouter.ai" target="_blank" style="color:var(--purple)">Get free at openrouter.ai</a></label>
+                <input type="text" id="key-openrouter" placeholder="sk-or-...">
+              </div>
+              <button class="gen-btn" onclick="saveKeys()">Save API Keys</button>
+              <div id="key-msg" style="margin-top:10px;font-size:12px;color:var(--teal)"></div>
+            </div>
+            <div class="settings-block">
+              <div class="settings-block-title">⚙ Preferences</div>
+              <div class="toggle-row">Apply brand voice automatically <button class="toggle on" id="pref-brand" onclick="flipToggle(this,'brand')"></button></div>
+              <div class="toggle-row">Include SEO keywords in content <button class="toggle off" id="pref-seo" onclick="flipToggle(this,'seo')"></button></div>
+              <div class="toggle-row">Auto-add call to action <button class="toggle on" id="pref-cta" onclick="flipToggle(this,'cta')"></button></div>
+              <div class="toggle-row">Save history this session <button class="toggle on" id="pref-hist" onclick="flipToggle(this,'hist')"></button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== UPGRADE PANEL ===== -->
+      <div id="panel-upgrade" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Choose your plan</div>
+            <div class="card-sub">Start free and grow. Upgrade any time without losing your settings or history.</div>
+          </div>
+          <div class="card-body">
+            <div class="plans-grid">
+              <div class="plan-card">
+                <div class="plan-tier">Free Alpha</div>
+                <div class="plan-price">$0</div>
+                <div class="plan-desc">Always free. No card.</div>
+                <div class="plan-features">
+                  ✓ 50 generations/day<br>
+                  ✓ All 6 formats<br>
+                  ✓ 1 brand voice<br>
+                  ✓ Gemini + Groq + Claude<br>
+                  ✗ No export<br>
+                  ✗ No team features
+                </div>
+                <div class="plan-btn outline" style="cursor:default">Current Plan</div>
+              </div>
+              <div class="plan-card featured">
+                <div class="plan-featured-label">MOST POPULAR</div>
+                <div class="plan-tier" style="color:var(--purple)">Pro Beta</div>
+                <div class="plan-price">$19<span>/mo</span></div>
+                <div class="plan-desc">Launching soon — join waitlist now.</div>
+                <div class="plan-features">
+                  ✓ Unlimited generations<br>
+                  ✓ All 6 formats<br>
+                  ✓ 5 brand voices<br>
+                  ✓ All AI models<br>
+                  ✓ Export PDF + DOCX<br>
+                  ✓ Content calendar
+                </div>
+                <button class="plan-btn primary" onclick="alert('Waitlist coming soon! Check back at our GitHub page.')">Join Waitlist →</button>
+              </div>
+              <div class="plan-card">
+                <div class="plan-tier">Agency</div>
+                <div class="plan-price">$79<span>/mo</span></div>
+                <div class="plan-desc">Coming Q3 2026.</div>
+                <div class="plan-features">
+                  ✓ Everything in Pro<br>
+                  ✓ 10 team seats<br>
+                  ✓ Client workspaces<br>
+                  ✓ White-label branding<br>
+                  ✓ API access<br>
+                  ✓ Custom models
+                </div>
+                <button class="plan-btn outline" onclick="alert('Agency tier coming Q3 2026!')">Get Notified</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end right-col -->
+  </div><!-- end main -->
+</div><!-- end app -->
+
+<script>
+// ─── STATE ───────────────────────────────────────────
+const S = {
+  format:'Blog Post', tone:'Professional', model:'auto',
+  busy:false, lastText:'', history:[], genCount:0, wordTotal:0, credits:50,
+  keys:{gemini:'',groq:'',openrouter:''},
+  brand:{name:'',desc:'',audience:'',words:'',avoid:''},
+  prefs:{brand:true,seo:false,cta:true,hist:true}
+};
+
+// ─── NAV ─────────────────────────────────────────────
+function showPanel(name){
+  ['create','brand','history','settings','upgrade'].forEach(p=>{
+    document.getElementById('panel-'+p).style.display='none';
+    const n=document.getElementById('nav-'+p);
+    if(n) n.classList.remove('active');
+  });
+  document.getElementById('panel-'+name).style.display='';
+  const n=document.getElementById('nav-'+name);
+  if(n) n.classList.add('active');
+}
+
+// ─── FORMAT / TONE / MODEL ────────────────────────────
+function setFmt(f,el){
+  S.format=f;
+  document.querySelectorAll('.format-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+function setTone(t,el){
+  S.tone=t;
+  document.querySelectorAll('.tone-chip').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function setModel(m,el){
+  S.model=m;
+  document.querySelectorAll('.model-chip').forEach(c=>{c.classList.remove('sel','auto-sel')});
+  el.classList.add('sel');
+  if(m==='auto') el.classList.add('auto-sel');
+}
+
+// ─── CHAR COUNT ───────────────────────────────────────
+function updateCharCount(){
+  const v=document.getElementById('topic').value;
+  const l=Math.min(v.length,500);
+  document.getElementById('char-count').textContent=l+' / 500 characters';
+  if(v.length>500) document.getElementById('topic').value=v.slice(0,500);
+}
+
+// ─── MODEL SELECTION ──────────────────────────────────
+function pickModel(){
+  if(S.model!=='auto') return S.model;
+  const f=S.format.toLowerCase();
+  if(f.includes('seo')||f.includes('blog')){ return S.keys.gemini?'gemini':'claude'; }
+  if(f.includes('social')||f.includes('ad')){ return S.keys.groq?'groq':'claude'; }
+  return 'claude';
+}
+function modelLabel(m){
+  return {auto:'Auto-routed',gemini:'Gemini Flash',groq:'Groq / Llama 4',claude:'Claude (Anthropic)'}[m]||m;
+}
+
+// ─── PROMPT BUILDER ───────────────────────────────────
+function buildPrompt(topic){
+  const platform=document.getElementById('platform').value;
+  const length=document.getElementById('length').value;
+  const b=S.brand;
+  const bCtx=(S.prefs.brand&&b.name)?`\n\nBrand: "${b.name}" — ${b.desc}. Audience: ${b.audience}. Voice: ${b.words}. Never say: ${b.avoid}.`:'';
+  const seo=S.prefs.seo?'\nNaturally include 2-3 relevant SEO keywords.':'';
+  const cta=S.prefs.cta?'\nEnd with a clear, natural call-to-action.':'';
+  return `Write a ${S.format} about: "${topic}"
+
+Format: ${S.format} | Tone: ${S.tone} | Platform: ${platform} | Length: ${length}${bCtx}${seo}${cta}
+
+Write ONLY the content itself. No preamble. No "Here is your..." intro. Make it engaging, original, and ready to publish.`;
+}
+
+// ─── API CALLS ────────────────────────────────────────
+async function callGemini(prompt){
+  const k=S.keys.gemini;
+  if(!k) throw new Error('No Gemini key. Add one in Settings, or switch model to Claude.');
+  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${k}`,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+  });
+  const d=await r.json();
+  if(!r.ok) throw new Error(d.error?.message||'Gemini error');
+  return d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+}
+async function callGroq(prompt){
+  const k=S.keys.groq;
+  if(!k) throw new Error('No Groq key. Add one in Settings, or switch model to Claude.');
+  const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+k},
+    body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],max_tokens:1200})
+  });
+  const d=await r.json();
+  if(!r.ok) throw new Error(d.error?.message||'Groq error');
+  return d.choices?.[0]?.message?.content||'';
+}
+async function callClaude(prompt){
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+  });
+  const d=await r.json();
+  if(!r.ok) throw new Error(d.error?.message||'API error');
+  return d.content?.[0]?.text||'';
+}
+
+// ─── GENERATE ─────────────────────────────────────────
+async function generate(){
+  const topic=document.getElementById('topic').value.trim();
+  if(!topic){showError('Please enter a topic first!');return;}
+  if(S.busy||S.credits<=0) return;
+  clearError(); S.busy=true;
+  const btn=document.getElementById('gen-btn');
+  btn.disabled=true;
+  document.getElementById('btn-label').innerHTML='<span class="loading">Generating your content…</span>';
+  document.getElementById('output').innerHTML='<div class="output-placeholder loading">Routing to best AI model and generating…</div>';
+
+  const chosen=pickModel();
+  const prompt=buildPrompt(topic);
+  try{
+    let text='';
+    if(chosen==='gemini') text=await callGemini(prompt);
+    else if(chosen==='groq') text=await callGroq(prompt);
+    else text=await callClaude(prompt);
+
+    S.lastText=text;
+    const words=text.trim().split(/\s+/).length;
+    S.wordTotal+=words; S.genCount++; S.credits=Math.max(0,S.credits-1);
+    document.getElementById('st-gen').textContent=S.genCount;
+    document.getElementById('st-words').textContent=S.wordTotal;
+    document.getElementById('credits-display').textContent='✦ '+S.credits+' credits today';
+
+    document.getElementById('output').innerHTML=
+      `<div class="model-tag">✦ ${modelLabel(chosen)} · ${words} words</div>\n${esc(text)}`;
+
+    if(S.prefs.hist){
+      S.history.unshift({format:S.format,topic,text,model:chosen,words});
+      renderHistory();
+    }
+  }catch(e){
+    showError(e.message);
+    document.getElementById('output').innerHTML='<div class="output-placeholder">Generation failed. Check your API keys in Settings, or try Claude mode.</div>';
+  }
+  S.busy=false; btn.disabled=false;
+  document.getElementById('btn-label').textContent='✦ Generate Content';
+}
+
+// ─── COPY / SAVE ──────────────────────────────────────
+function copyOut(){
+  if(!S.lastText) return;
+  navigator.clipboard.writeText(S.lastText).then(()=>{
+    const b=document.querySelector('.action-btn');
+    b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy',1800);
+  });
+}
+function saveOut(){
+  if(!S.lastText){alert('Nothing to save yet!');return;}
+  alert('Saved to history! ✓');
+}
+
+// ─── HISTORY ──────────────────────────────────────────
+function renderHistory(){
+  const list=document.getElementById('history-list');
+  if(!S.history.length){list.innerHTML='<div class="output-placeholder" style="padding:20px 0">No content yet.</div>';return;}
+  list.innerHTML=S.history.slice(0,15).map((h,i)=>
+    `<div class="history-item" onclick="loadHistory(${i})">
+      <div class="history-meta">${h.format} · ${h.words} words · ${modelLabel(h.model)}</div>
+      <div class="history-preview">${esc(h.topic)}</div>
+    </div>`
+  ).join('');
+}
+function loadHistory(i){
+  const h=S.history[i];
+  S.lastText=h.text;
+  document.getElementById('output').innerHTML=
+    `<div class="model-tag">✦ ${modelLabel(h.model)} · ${h.words} words (from history)</div>\n${esc(h.text)}`;
+  showPanel('create');
+}
+
+// ─── BRAND ────────────────────────────────────────────
+function saveBrand(){
+  S.brand={
+    name:document.getElementById('b-name').value,
+    desc:document.getElementById('b-desc').value,
+    audience:document.getElementById('b-audience').value,
+    words:document.getElementById('b-words').value,
+    avoid:document.getElementById('b-avoid').value
+  };
+  document.getElementById('brand-msg').innerHTML=
+    '<div style="color:var(--teal);font-size:13px;margin-top:10px">✓ Brand voice saved! It will be applied to all future content.</div>';
+}
+
+// ─── SETTINGS ────────────────────────────────────────
+function saveKeys(){
+  S.keys.gemini=document.getElementById('key-gemini').value.trim();
+  S.keys.groq=document.getElementById('key-groq').value.trim();
+  S.keys.openrouter=document.getElementById('key-openrouter').value.trim();
+  document.getElementById('key-msg').textContent='✓ Keys saved for this session';
+}
+function flipToggle(btn,key){
+  S.prefs[key]=!S.prefs[key];
+  btn.className='toggle '+(S.prefs[key]?'on':'off');
+}
+
+// ─── UTILS ────────────────────────────────────────────
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showError(msg){document.getElementById('error-area').innerHTML=`<div class="error-box">⚠ ${esc(msg)}</div>`;}
+function clearError(){document.getElementById('error-area').innerHTML='';}
+
+showPanel('create');
+</script>
+</body>
+</html>

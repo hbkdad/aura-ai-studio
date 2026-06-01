@@ -102,6 +102,25 @@ def init_db():
                 require_confirmation_above_usd REAL DEFAULT 500.0,
                 notes TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS agent_memory (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                agent_name TEXT NOT NULL,
+                memory_type TEXT NOT NULL CHECK(memory_type IN ('short_term','long_term')),
+                key TEXT NOT NULL,
+                value TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+                expires_at TEXT,
+                UNIQUE(agent_name, memory_type, key)
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_agent_memory_agent_type
+                ON agent_memory (agent_name, memory_type);
+
+            CREATE INDEX IF NOT EXISTS idx_agent_memory_expires
+                ON agent_memory (expires_at)
+                WHERE expires_at IS NOT NULL;
         """)
 
         row = conn.execute("SELECT COUNT(*) as cnt FROM treasury_rules").fetchone()

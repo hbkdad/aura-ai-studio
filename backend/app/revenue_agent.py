@@ -8,7 +8,7 @@ def record_manual_revenue(
     source: str,
     gross_amount: float,
     description: str = None,
-    currency: str = "USD",
+    currency: str = "CAD",
     payment_method: str = "manual",
     reference_id: str = None,
     metadata: dict = None,

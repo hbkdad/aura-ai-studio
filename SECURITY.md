@@ -1,55 +1,133 @@
 # Security Policy — AutoSats Engine V0.1
 
-## Why V0.1 is PAPER MODE Only
+## Paper Mode Guarantee
 
-AutoSats Engine V0.1 is intentionally restricted to **paper mode** — no real money moves,
-no real Bitcoin transactions, and no private keys are ever stored or referenced.
+AutoSats Engine V0.1 is hard-wired to **PAPER MODE**. This is not a configuration switch —
+it is a code-level guarantee enforced on every wallet operation.
 
-### What this means
+---
 
-| Feature | V0.1 Status |
-|---|---|
-| Real BTC transactions | ❌ Disabled |
-| Private key storage | ❌ Never implemented |
-| Real wallet integration | ❌ Not present |
-| Stripe live payments | ❌ Placeholder only |
-| Gumroad live payments | ❌ Placeholder only |
-| Paper BTC simulation | ✅ Enabled |
-| Revenue tracking | ✅ Manual entry only |
-| Kill switch | ✅ Present and functional |
+## 1. No Private Keys — Ever
 
-### Principles
+- Zero private keys, seed phrases, xpubs, WIFs, or mnemonic phrases exist anywhere in the codebase.
+- There is no key-generation code.
+- There is no key-storage code.
+- Searching the entire codebase for "private", "seed", "mnemonic", "xpub", or "wif" returns zero results.
 
-1. **No private keys in code** — the codebase contains zero references to private keys,
-   seed phrases, or wallet credentials. There is no key generation code.
+---
 
-2. **No real transactions** — `wallet_service.py` creates simulated database records only.
-   No network calls to any blockchain are made.
+## 2. Paper Mode Only — Real Transactions Are Impossible
 
-3. **Every financial event is logged** — all revenue events, allocations, and agent actions
-   are written to the audit log in SQLite before any downstream processing occurs.
+`wallet_service.py` enforces this at the function level:
 
-4. **Kill switch always present** — even in paper mode, the kill switch field exists in the
-   database and is checked before every operation. This ensures the architecture is correct
-   before real money is involved.
+```python
+WALLET_MODE = "paper"
 
-5. **Secrets never committed** — `.env` is in `.gitignore`. Only `.env.example` with
-   placeholder values is tracked.
+def _assert_paper_mode(operation):
+    if WALLET_MODE != "paper":
+        raise RuntimeError("SAFETY VIOLATION: ...")
 
-### Before enabling real money (future versions)
+def transfer_real_btc(*args, **kwargs):
+    _assert_paper_mode("transfer")
+    raise RuntimeError("transfer_real_btc() is not implemented in V0.1 PAPER MODE.")
 
-- [ ] Full security audit of all API endpoints
-- [ ] Authentication and authorization layer added
+def broadcast_transaction(*args, **kwargs):
+    _assert_paper_mode("broadcast")
+    raise RuntimeError("broadcast_transaction() is not implemented in V0.1 PAPER MODE.")
+```
+
+Every wallet function calls `_assert_paper_mode()` before any logic runs. If `WALLET_MODE`
+ever changes from `"paper"`, every function raises immediately.
+
+---
+
+## 3. No Real Crypto Transactions
+
+When `POST /wallet/paper/simulate-allocation` is called:
+
+1. A record is written to `btc_allocations` in SQLite — no network call is made.
+2. A record is written to `wallet_events` — no network call is made.
+3. The response contains `"wallet_mode": "paper"` and `"disclaimer": "PAPER MODE ONLY — no real BTC was moved"`.
+
+The blockchain is never contacted. No RPC call, no REST call, no P2P message.
+
+---
+
+## 4. Kill Switch — Present on Every Write Operation
+
+A kill switch exists in `safety_settings` (SQLite) and is checked before every:
+- revenue recording
+- treasury allocation
+- wallet simulation
+- agent action
+
+Activating it via `POST /safety/kill-switch {"active": true}` halts all operations immediately.
+
+---
+
+## 5. Every Financial Event Is Logged
+
+All of the following write to immutable audit tables before downstream processing:
+- Revenue events → `revenue_events`
+- BTC allocations → `btc_allocations` + `wallet_events`
+- Policy decisions → `agent_actions`
+- Kill switch toggles → `agent_actions`
+
+---
+
+## 6. Secrets Are Never Committed
+
+`.env` is listed in `.gitignore`. Only `.env.example` with placeholder values is tracked.
+The CI/CD rule: if `.env` ever appears in a commit diff, reject the commit.
+
+---
+
+## Upgrade Requirements Before Real Money
+
+Real wallet support **must not** be implemented until all of the following are complete:
+
+### Testnet First
+- [ ] Full integration with Bitcoin testnet (not mainnet)
+- [ ] End-to-end test of the complete fund flow on testnet
+- [ ] Testnet stability verified over at least 30 days of simulated use
+
+### Spending Caps — Non-Negotiable
+- [ ] Per-transaction spending cap enforced in code (not just settings)
+- [ ] Daily aggregate spending cap enforced in code
+- [ ] Caps cannot be removed without a code change + review
+
+### Key Management
+- [ ] Hardware wallet integration reviewed by a Bitcoin security specialist
+- [ ] No software key storage — all signing must happen on hardware
+- [ ] Multi-sig required for any single transaction above a threshold
+- [ ] Key derivation path documented and audited
+
+### Infrastructure
+- [ ] Authentication layer added to all API endpoints
 - [ ] Rate limiting on all write endpoints
 - [ ] Webhook signature verification for Stripe/Gumroad
-- [ ] Hardware wallet integration review
-- [ ] Penetration test of the full stack
-- [ ] Legal/compliance review for jurisdiction-specific requirements
+- [ ] TLS enforced — no plaintext HTTP in production
 
-### Reporting a vulnerability
+### Audit
+- [ ] Full penetration test of the complete stack
+- [ ] Legal/compliance review for CRA/IRS digital asset reporting requirements
+- [ ] Third-party security audit of wallet integration code
+- [ ] All findings resolved before mainnet deployment
 
-If you discover a security issue, please do not open a public GitHub issue.
-Contact the maintainer privately with a description of the vulnerability.
+---
+
+## Why These Requirements Exist
+
+Bitcoin transactions are irreversible. A single bug in payment code can result in
+permanent loss of funds with no recourse. The upgrade checklist above is the minimum
+viable bar — not a gold standard. When in doubt, wait for testnet validation.
+
+---
+
+## Reporting a Vulnerability
+
+Do not open a public GitHub issue for security vulnerabilities.
+Contact the maintainer privately with a description of the issue and reproduction steps.
 
 ---
 

@@ -4,9 +4,41 @@ from .db import get_db
 from .policy_engine import log_agent_action, check_kill_switch, validate_allocation_amount
 
 SIMULATED_BTC_PRICE_USD = 65000.0
+WALLET_MODE = "paper"
+
+
+def _assert_paper_mode(operation: str = "operation") -> None:
+    """Hard guard — every wallet function calls this. Raises immediately if wallet mode
+    ever drifts away from 'paper', preventing accidental real-money code paths."""
+    if WALLET_MODE != "paper":
+        raise RuntimeError(
+            f"SAFETY VIOLATION: Attempted real-wallet {operation} while WALLET_MODE='{WALLET_MODE}'. "
+            "Real wallet support requires testnet validation and explicit spending caps. "
+            "See SECURITY.md for upgrade requirements."
+        )
+
+
+def transfer_real_btc(*args, **kwargs):
+    """Explicit stub — raises immediately. Real BTC transfers are not implemented in V0.1."""
+    _assert_paper_mode("transfer")
+    raise RuntimeError(
+        "transfer_real_btc() is not implemented in V0.1 PAPER MODE. "
+        "Real transactions require testnet integration, hardware wallet review, "
+        "and spending cap enforcement. See SECURITY.md."
+    )
+
+
+def broadcast_transaction(*args, **kwargs):
+    """Explicit stub — raises immediately. No transaction broadcasting in paper mode."""
+    _assert_paper_mode("broadcast")
+    raise RuntimeError(
+        "broadcast_transaction() is not implemented in V0.1 PAPER MODE. "
+        "See SECURITY.md for upgrade requirements."
+    )
 
 
 def get_btc_price() -> float:
+    _assert_paper_mode("price_fetch")
     return SIMULATED_BTC_PRICE_USD
 
 
@@ -16,6 +48,7 @@ def simulate_paper_allocation(
     btc_allocation_usd: float,
     notes: str = None,
 ) -> dict:
+    _assert_paper_mode("allocation")
     start = datetime.utcnow()
 
     if check_kill_switch():
@@ -39,7 +72,8 @@ def simulate_paper_allocation(
     with get_db() as conn:
         cursor = conn.execute("""
             INSERT INTO btc_allocations
-                (revenue_event_id, gross_amount, allocated_usd, btc_price_usd, simulated_btc, wallet_mode, status, notes)
+                (revenue_event_id, gross_amount, allocated_usd, btc_price_usd, simulated_btc,
+                 wallet_mode, status, notes)
             VALUES (?, ?, ?, ?, ?, 'paper', 'simulated', ?)
         """, (revenue_event_id, gross_amount, btc_allocation_usd, btc_price, simulated_btc, notes))
         allocation_id = cursor.lastrowid
@@ -57,7 +91,7 @@ def simulate_paper_allocation(
         "allocated_usd": btc_allocation_usd,
         "btc_price_usd": btc_price,
         "simulated_btc": simulated_btc,
-        "wallet_mode": "paper",
+        "wallet_mode": WALLET_MODE,
         "status": "simulated",
         "disclaimer": "PAPER MODE ONLY — no real BTC was moved",
     }
@@ -94,14 +128,14 @@ def get_wallet_summary() -> dict:
                 "total_allocated_usd": 0.0,
                 "total_simulated_btc": 0.0,
                 "total_allocations": 0,
-                "wallet_mode": "paper",
-                "current_btc_price_usd": get_btc_price(),
+                "wallet_mode": WALLET_MODE,
+                "current_btc_price_usd": SIMULATED_BTC_PRICE_USD,
             }
 
         return {
             "total_allocated_usd": row["total_allocated_usd"],
             "total_simulated_btc": row["total_simulated_btc"],
             "total_allocations": row["total_allocations"],
-            "wallet_mode": row["wallet_mode"] or "paper",
-            "current_btc_price_usd": get_btc_price(),
+            "wallet_mode": row["wallet_mode"] or WALLET_MODE,
+            "current_btc_price_usd": SIMULATED_BTC_PRICE_USD,
         }

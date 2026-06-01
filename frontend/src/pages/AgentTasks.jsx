@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { postWebsiteAudit, getAgentActions } from '../api'
+import AgentLoopPanel from '../components/AgentLoopPanel'
+import SkillsListPanel from '../components/SkillsListPanel'
 
 export default function AgentTasks() {
   const [actions, setActions] = useState([])
@@ -51,8 +53,11 @@ export default function AgentTasks() {
     <div>
       <div className="page-header">
         <div className="page-title">Agent Tasks</div>
-        <div className="page-subtitle">AI-powered website audit and outreach generation</div>
+        <div className="page-subtitle">AI-powered website audit, skill runner, and agent loop</div>
       </div>
+
+      <AgentLoopPanel />
+      <SkillsListPanel />
 
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <div className="section">

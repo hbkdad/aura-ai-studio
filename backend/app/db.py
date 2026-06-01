@@ -35,7 +35,7 @@ def init_db():
                 source TEXT NOT NULL,
                 description TEXT,
                 gross_amount REAL NOT NULL,
-                currency TEXT NOT NULL DEFAULT 'USD',
+                currency TEXT NOT NULL DEFAULT 'CAD',
                 payment_method TEXT DEFAULT 'manual',
                 reference_id TEXT,
                 metadata TEXT

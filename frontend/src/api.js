@@ -52,3 +52,27 @@ export const getSafetySettings = () => api.get('/safety/settings')
 export const putSafetySettings = (body) => api.put('/safety/settings', body)
 
 export const postFakeSale = () => api.post('/test/fake-sale')
+
+// Skills
+export const getSkills = () => api.get('/skills')
+export const runSkill = (skillName, input = {}) =>
+  api.post(`/skills/${skillName}/run`, { input })
+
+// Agent loop
+export const runAgentLoop = (goal, sessionId = null, maxSteps = 10) =>
+  api.post('/agents/run', { goal, session_id: sessionId, max_steps: maxSteps })
+
+// Memory
+export const getMemory = (agentName = null, memoryType = null) => {
+  const params = new URLSearchParams()
+  if (agentName) params.append('agent_name', agentName)
+  if (memoryType) params.append('memory_type', memoryType)
+  return api.get(`/memory${params.toString() ? '?' + params.toString() : ''}`)
+}
+export const clearMemory = (agentName = null, memoryType = null, key = null) => {
+  const params = new URLSearchParams()
+  if (agentName) params.append('agent_name', agentName)
+  if (memoryType) params.append('memory_type', memoryType)
+  if (key) params.append('key', key)
+  return api.delete(`/memory${params.toString() ? '?' + params.toString() : ''}`)
+}

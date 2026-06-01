@@ -18,6 +18,10 @@ from .wallet_service import (
 from .tax_export import export_revenue_csv
 from .policy_engine import check_kill_switch, get_safety_settings, log_agent_action
 from .db import get_db
+from .memory_service import _purge_expired
+from .routers.skills_router import router as skills_router
+from .routers.agents_router import router as agents_router
+from .routers.memory_router import router as memory_router
 
 app = FastAPI(
     title="AutoSats Engine",
@@ -31,6 +35,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(skills_router)
+app.include_router(agents_router)
+app.include_router(memory_router)
 
 
 # ── Global error handlers ─────────────────────────────────────────────────────
@@ -56,6 +64,7 @@ async def value_error_handler(request: Request, exc: ValueError):
 @app.on_event("startup")
 def startup():
     init_db()
+    _purge_expired()
 
 
 # ── Health ────────────────────────────────────────────────────────────────────

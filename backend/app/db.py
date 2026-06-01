@@ -121,6 +121,19 @@ def init_db():
             CREATE INDEX IF NOT EXISTS idx_agent_memory_expires
                 ON agent_memory (expires_at)
                 WHERE expires_at IS NOT NULL;
+
+            CREATE TABLE IF NOT EXISTS memory_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                memory_type TEXT NOT NULL DEFAULT 'note',
+                title TEXT NOT NULL,
+                content TEXT NOT NULL,
+                source TEXT NOT NULL DEFAULT 'user',
+                tags TEXT DEFAULT '[]'
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_memory_events_type
+                ON memory_events (memory_type);
         """)
 
         row = conn.execute("SELECT COUNT(*) as cnt FROM treasury_rules").fetchone()

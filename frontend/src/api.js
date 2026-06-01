@@ -62,7 +62,7 @@ export const runSkill = (skillName, input = {}) =>
 export const runAgentLoop = (goal, sessionId = null, maxSteps = 10) =>
   api.post('/agents/run', { goal, session_id: sessionId, max_steps: maxSteps })
 
-// Memory
+// Agent runtime memory (key-value store)
 export const getMemory = (agentName = null, memoryType = null) => {
   const params = new URLSearchParams()
   if (agentName) params.append('agent_name', agentName)
@@ -76,3 +76,14 @@ export const clearMemory = (agentName = null, memoryType = null, key = null) => 
   if (key) params.append('key', key)
   return api.delete(`/memory${params.toString() ? '?' + params.toString() : ''}`)
 }
+
+// Project memory system
+export const getMemorySummary = () => api.get('/memory/summary')
+export const getMemoryEvents = (limit = 50, memoryType = null, source = null) => {
+  const params = new URLSearchParams()
+  params.append('limit', limit)
+  if (memoryType) params.append('memory_type', memoryType)
+  if (source) params.append('source', source)
+  return api.get(`/memory/events?${params.toString()}`)
+}
+export const postMemoryEvent = (data) => api.post('/memory/events', data)

@@ -5,6 +5,7 @@ import Treasury from './pages/Treasury'
 import AgentTasks from './pages/AgentTasks'
 import WalletSafety from './pages/WalletSafety'
 import Settings from './pages/Settings'
+import Memory from './pages/Memory'
 import './App.css'
 
 const NAV = [
@@ -13,6 +14,7 @@ const NAV = [
   { to: '/treasury', label: '◈ Treasury' },
   { to: '/agents', label: '◉ Agent Tasks' },
   { to: '/wallet', label: '₿ Wallet Safety' },
+  { to: '/memory', label: '◈ Memory' },
   { to: '/settings', label: '⚙ Settings' },
 ]
 
@@ -48,6 +50,7 @@ export default function App() {
           <Route path="/treasury" element={<Treasury />} />
           <Route path="/agents" element={<AgentTasks />} />
           <Route path="/wallet" element={<WalletSafety />} />
+          <Route path="/memory" element={<Memory />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>

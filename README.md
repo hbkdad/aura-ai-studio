@@ -212,6 +212,80 @@ All four percentages must always sum to exactly 100%.
 
 ---
 
+## Project Memory System
+
+AutoSats Engine has a local project memory system for storing and retrieving decisions, rules, audit history, and notes. All data is stored in the local SQLite database and never leaves your machine.
+
+### What it stores
+
+- **Decisions** — rule changes, configuration decisions
+- **Notes** — general project notes
+- **Audit** — compliance and audit records
+- **Rules** — hard-coded invariants and policy notes
+- **Actions** — agent action summaries
+- **Warnings** — flags and cautions
+
+### Memory page (UI)
+
+Navigate to **Memory** in the sidebar to:
+- View project summary (mode, version, currency, stats)
+- See current treasury split rules and safety settings
+- Browse all memory events with type/source filters
+- Click any event row to expand and read its full content
+- Add a new memory note via the form
+
+### API endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/memory/summary` | Full project summary — rules, stats, product config |
+| GET | `/memory/events` | List memory events (filters: `memory_type`, `source`, `limit`) |
+| POST | `/memory/events` | Add a new memory event |
+
+### Add a memory note (curl)
+
+```bash
+curl -X POST http://localhost:8000/memory/events \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Changed BTC split to 25%",
+    "content": "Increased BTC allocation from 20% to 25% to reflect higher confidence in paper mode. Operating cash reduced from 40% to 35%. Effective 2026-06-01.",
+    "memory_type": "decision",
+    "source": "user",
+    "tags": ["treasury", "btc", "rules"]
+  }'
+```
+
+### Safety filter
+
+The memory system **rejects** any content that contains:
+
+- `private key` / `private_key`
+- `seed phrase` / `mnemonic`
+- `api key` / `secret token` / `bearer token`
+- `wallet backup` / `passphrase` / `password`
+- OpenAI-style API keys (`sk-...`)
+- Ethereum private key hex strings (`0x` + 64 hex chars)
+- Bitcoin WIF private keys
+- PEM private key blocks
+
+Rejected requests return HTTP 400 with a clear error message.
+
+### Query examples
+
+```bash
+# Get all decisions
+curl "http://localhost:8000/memory/events?memory_type=decision"
+
+# Get last 10 events from agent source
+curl "http://localhost:8000/memory/events?source=agent&limit=10"
+
+# Get full project summary
+curl http://localhost:8000/memory/summary
+```
+
+---
+
 ## API Reference
 
 | Method | Endpoint | Description |
@@ -231,6 +305,12 @@ All four percentages must always sum to exactly 100%.
 | GET | `/safety/settings` | Get safety settings |
 | PUT | `/safety/settings` | Update safety limits (body) |
 | POST | `/test/fake-sale` | Run $100 CAD test and verify splits |
+| GET | `/memory/summary` | Full project memory summary |
+| GET | `/memory/events` | List project memory events |
+| POST | `/memory/events` | Add a project memory event |
+| GET | `/skills` | List all registered skills |
+| POST | `/skills/{name}/run` | Run a skill by name |
+| POST | `/agents/run` | Run the agent loop with a goal |
 
 ---
 

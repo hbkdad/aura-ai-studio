@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Fragment } from 'react'
 import { getMemorySummary, getMemoryEvents, postMemoryEvent } from '../api'
 
 const TYPE_COLORS = {
@@ -306,9 +306,8 @@ export default function Memory() {
               </thead>
               <tbody>
                 {events.map(ev => (
-                  <>
+                  <Fragment key={ev.id}>
                     <tr
-                      key={ev.id}
                       style={{ cursor: 'pointer' }}
                       onClick={() => setExpandedId(expandedId === ev.id ? null : ev.id)}
                     >
@@ -332,7 +331,7 @@ export default function Memory() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 ))}
               </tbody>
             </table>
